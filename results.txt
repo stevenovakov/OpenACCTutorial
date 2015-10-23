@@ -1,12 +1,61 @@
+# Compilation
+
+g++ -Wall -ansi -pedantic -fPIC -std=c++11 relax.cc -o relax
+
+g++ -Wall -ansi -pedantic -fPIC -std=c++11 relax.cc -o relax -fopenmp -lpthread
+
 #
-# CPU single thread, n=1000, epsilon = 1e-6, maxiter = 100k
+# CPU single thread, n=200, epsilon = 1e-6, maxiter = 100k
 #
 
-...
+9900, 0.0000011921
+10000, 0.0000011921
+10100, 0.0000010729
 
-16800, 0.0000101328
-16900, 0.0000100881
-17000, 0.0000100583
-
-Iteration Complete. Time Elapsed: 476.415833 (s)
+Iteration Complete. Total Iterations: 10171, Time Elapsed: 6.995987 (s)
 Writing to "output.csv" ...
+
+#
+# OpenMP 12 thread, n=200, epsilon = 1e-6, maxiter = 100k
+#
+
+9900, 0.0000011921
+10000, 0.0000011921
+10100, 0.0000010729
+
+Iteration Complete. Total Iterations: 10165, Time Elapsed: 75.941437 (s)
+Writing to "output.csv" ...
+
+#
+# CPU single thread, n=500, epsilon = 1e-6, maxiter = 100k
+#
+
+45300, 0.0000010729
+45400, 0.0000010729
+45500, 0.0000010729
+
+Iteration Complete. Total Iterations: 45568, Time Elapsed: 207.131790 (s)
+Writing to "output.csv" ...
+
+#
+# OpenMP 12 thread, n=500, epsilon = 1e-6, maxiter = 100k
+#
+
+45300, 0.0000010729
+45400, 0.0000010729
+45500, 0.0000010133
+
+Iteration Complete. Total Iterations: 45564, Time Elapsed: 1749.814941 (s)
+Writing to "output.csv" ...
+
+#
+# There's a problem here.
+#
+
+It has to do with the way the error is being calculated. It does not make any sense for there to be a single error field in a multithreaded approach.
+
+Ideas: error matrix, have one thread go through it and find the max O(N^2)
+
+Can alleviate some computation expense by checking once every T iterations,
+
+where T is the # of threads. It's O(N^2) and so is the calculation, so we need two threads available for this to just be a wash.

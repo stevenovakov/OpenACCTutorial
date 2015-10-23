@@ -22,6 +22,13 @@
 //
 // http://devblogs.nvidia.com/parallelforall/openacc-example-part-1/
 
+
+//
+// TODO
+//    install CUDA 7.5
+//    install OpenACC toolkit
+//
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -29,7 +36,7 @@
 #include <complex>
 #include <time.h>
 
-uint32_t n = 1000;
+uint32_t n = 200;
 
 void CLArgs(int argc, char * argv[]);
 
@@ -73,7 +80,7 @@ int main(int argc, char * argv[])
 
       if ( x*x + y*y >= 1.0)
       {
-        if ( std::cos(std::atan2(x, y)) > 0)
+        if ( std::cos(std::atan2(y, x)) > 0)
         {
           phi[xy] = 1.0;
           phi[xy2] = 1.0;
@@ -99,9 +106,9 @@ int main(int argc, char * argv[])
 
   uint32_t iter = 0;
   uint32_t sel = 0;
-  uint32_t max_iter = 100000;
+  uint32_t max_iter = 1000000;
   float error = 1000.0f;
-  float epsilon = 1.0e-5f;
+  float epsilon = 1.0e-6f;
 
   clock_t itertime;
   itertime = clock();
@@ -111,11 +118,18 @@ int main(int argc, char * argv[])
     error = 0.f;
     sel = iter % 2;
 
+#pragma omp parallel for shared(sel, n, xx, yy, phi)
     for (uint32_t i = 1; i < n-1; i++)
     {
       for (uint32_t j = 1; j < n-1; j++)
       {
         uint32_t ibase = i + n * j;
+
+        float x = xx[ibase];
+        float y = yy[ibase];
+
+        if ( x*x + y*y > 1.0)
+          continue;
 
         uint32_t iread = sel * n * n;
         uint32_t iwrite = (1-sel) * n * n;
@@ -149,37 +163,52 @@ int main(int argc, char * argv[])
 
   itertime = clock() - itertime;
 
-  printf("Iteration Complete. Time Elapsed: %f (s)\n",
-    static_cast<float>(itertime) / CLOCKS_PER_SEC);
+  printf("Iteration Complete. Total Iterations: %d, Time Elapsed: %f (s)\n",
+    iter - 1, static_cast<float>(itertime) / CLOCKS_PER_SEC);
 
   // write potential to csv file
   // use imshow in python to display (square domain, who cares)
 
-  FILE * file;
+  FILE *pfile, *xfile, *yfile;
 
   puts("Writing to \"output.csv\" ...\n");
 
-  file = fopen("output.csv", "w");
+  pfile = fopen("phi.csv", "w");
+  xfile = fopen("xx.csv", "w");
+  yfile = fopen("yy.csv", "w");
 
   uint32_t readfrom = (1-sel) * n * n;
-  uint32_t iread;
+  uint32_t ind, iread;
 
   for (uint32_t i = 0; i < n; i++)
   {
     for (uint32_t j = 0; j < n; j++)
     {
-      iread = readfrom + i + n * j;
+      ind = i + n * j;
+      iread = readfrom + ind;
 
-      fprintf(file, "%f", phi[iread]);
+      fprintf(pfile, "%f", phi[iread]);
+      fprintf(xfile, "%f", xx[ind]);
+      fprintf(yfile, "%f", yy[ind]);
 
       if(j < n-1)
-        fprintf(file, ",");
+      {
+        fprintf(pfile, ",");
+        fprintf(xfile, ",");
+        fprintf(yfile, ",");
+      }
     }
     if (i < n-1)
-      fprintf(file, "\n");
+    {
+      fprintf(pfile, "\n");
+      fprintf(xfile, "\n");
+      fprintf(yfile, "\n");
+    }
   }
 
-  fclose(file);
+  fclose(pfile);
+  fclose(xfile);
+  fclose(yfile);
 
 
   delete[] xx;
