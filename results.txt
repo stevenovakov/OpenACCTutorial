@@ -1,0 +1,12 @@
+#
+# CPU single thread, n=1000, epsilon = 1e-6, maxiter = 100k
+#
+
+...
+
+16800, 0.0000101328
+16900, 0.0000100881
+17000, 0.0000100583
+
+Iteration Complete. Time Elapsed: 476.415833 (s)
+Writing to "output.csv" ...
