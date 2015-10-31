@@ -21,10 +21,10 @@ PGI = pgc++
 
 GPPFLAGS = -Wall -ansi -pedantic -fPIC -std=c++11
 DGPPFLAGS = -g -Wall -ansi -pedantic -fPIC -std=c++11
-PGIFLAGS = -acc -ta=tesla:managed -Minfo=accel -std=c++11 -D OACC
-DPGIFLAGS = -g -acc -ta=tesla:managed -Minfo=accel -std=c++11 -D OACC
+PGIFLAGS = -acc -ta=nvidia:managed -Minfo=acc -std=c++11 -D OACC
+DPGIFLAGS = -g -acc -ta=nvidia:managed -std=c++11 -D OACC
 
-OMPFLAGS = -fopenmp -lpthread -D OPENMP
+OMPFLAGS = -fopenmp -lpthread -D OMP
 
 TARGETS = relax relax_omp relax_oacc
 

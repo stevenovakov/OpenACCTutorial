@@ -38,7 +38,7 @@
 #include <cmath>
 #include <complex>
 
-#ifdef OPENMP
+#ifdef OMP
   #include "omp.h"
 #else
   #include <time.h>
@@ -123,7 +123,7 @@ int main(int argc, char * argv[])
   float error = 1000.0f;
   float epsilon = 1.0e-6f;
 
-#ifdef OPENMP
+#ifdef OMP
   double start, end;
   start = omp_get_wtime();
 #else
@@ -136,7 +136,7 @@ int main(int argc, char * argv[])
     error = 0.0f;
     sel = iter % 2;
 
-#ifdef OPENMP
+#ifdef OMP
     #pragma omp parallel for shared(sel, n, xx, yy, phi) reduction(max : error)
 #elif OACC
     #pragma acc kernels
@@ -146,7 +146,7 @@ int main(int argc, char * argv[])
       for (uint32_t i = 1; i < n-1; i++)
       {
 #ifdef OACC
-        #pragma acc loop independent //gang(16), vector(32)
+        #pragma acc loop independent //reduction(max:error)
 #endif
         for (uint32_t j = 1; j < n-1; j++)
         {
@@ -193,11 +193,11 @@ int main(int argc, char * argv[])
     iter++;
   }
 
-#ifdef OPENMP
+#ifdef OMP
   end = omp_get_wtime();
 
   printf("Iteration Complete. Total Iterations: %d, Time Elapsed: %f (s)\n",
-    iter - 1, end - start);
+    iter, end - start);
 #else
   itertime = clock() - itertime;
 
@@ -208,11 +208,18 @@ int main(int argc, char * argv[])
   // write potential to csv file
   FILE *pfile, *xfile, *yfile;
 
-  puts("Writing to \"output.csv\" ...\n");
+  puts("Writing to \"output csvs\" ...\n");
 
-  pfile = fopen("phi.csv", "w");
   xfile = fopen("xx.csv", "w");
   yfile = fopen("yy.csv", "w");
+
+#ifdef OMP
+  pfile = fopen("phi.csv", "w");
+#elif OACC
+  pfile = fopen("phi_oacc.csv", "w");
+#else
+  pfile = fopen("phi_omp.csv", "w");
+#endif
 
   uint32_t readfrom = (1-sel) * n * n;
   uint32_t ind, iread;
