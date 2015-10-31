@@ -1,5 +1,5 @@
 /*
-# jacobi.cc
+# relax.cc
 #     part of OpenACC tutorial to accelerate Jacobi Iteration
 #     Copyright (C) 2015 Steve Novakov
 
@@ -27,9 +27,12 @@
 // TODO
 //    install CUDA 7.5
 //    install OpenACC toolkit
+//    create makefile with cpp, openmp, openacc options
+//    create installation instructions for openacc
 //
 
 #include <iostream>
+#include <cstdint>
 #include <string>
 #include <vector>
 #include <cmath>
@@ -39,6 +42,10 @@
   #include "omp.h"
 #else
   #include <time.h>
+#endif
+
+#ifdef OACC
+  #include "openacc.h"
 #endif
 
 uint32_t n = 200;
@@ -112,7 +119,7 @@ int main(int argc, char * argv[])
 
   uint32_t iter = 0;
   uint32_t sel = 0;
-  uint32_t max_iter = 1000000;
+  uint32_t max_iter = 10;
   float error = 1000.0f;
   float epsilon = 1.0e-6f;
 
@@ -131,42 +138,52 @@ int main(int argc, char * argv[])
 
 #ifdef OPENMP
     #pragma omp parallel for shared(sel, n, xx, yy, phi) reduction(max : error)
-#endif
-    for (uint32_t i = 1; i < n-1; i++)
+#elif OACC
+    #pragma acc kernels
     {
-      for (uint32_t j = 1; j < n-1; j++)
+      #pragma acc loop independent
+#endif
+      for (uint32_t i = 1; i < n-1; i++)
       {
-        uint32_t ibase = i + n * j;
+#ifdef OACC
+        #pragma acc loop independent //gang(16), vector(32)
+#endif
+        for (uint32_t j = 1; j < n-1; j++)
+        {
+          uint32_t ibase = i + n * j;
 
-        float x = xx[ibase];
-        float y = yy[ibase];
+          float x = xx[ibase];
+          float y = yy[ibase];
 
-        if ( x*x + y*y > 1.0)
-          continue;
+          if ( x*x + y*y > 1.0)
+            continue;
 
-        uint32_t iread = sel * n * n;
-        uint32_t iwrite = (1-sel) * n * n;
+          uint32_t iread = sel * n * n;
+          uint32_t iwrite = (1-sel) * n * n;
 
-        uint32_t i1 = (i+1) + n * j;
-        uint32_t i2 = (i-1) + n * j;
-        uint32_t i3 = i + n * (j+1);
-        uint32_t i4 = i + n * (j-1);
-        uint32_t i5 = (i+1) + n * (j+1);
-        uint32_t i6 = (i-1) + n * (j+1);
-        uint32_t i7 = (i+1) + n * (j-1);
-        uint32_t i8 = (i-1) + n * (j-1);
+          uint32_t i1 = (i+1) + n * j;
+          uint32_t i2 = (i-1) + n * j;
+          uint32_t i3 = i + n * (j+1);
+          uint32_t i4 = i + n * (j-1);
+          uint32_t i5 = (i+1) + n * (j+1);
+          uint32_t i6 = (i-1) + n * (j+1);
+          uint32_t i7 = (i+1) + n * (j-1);
+          uint32_t i8 = (i-1) + n * (j-1);
 
-        float pc = 0.25 * (phi[iread + i1] + phi[iread + i2] +
-          phi[iread + i3] + phi[iread + i4]);
-        float ps = 0.25 * (phi[iread + i5] + phi[iread + i6] +
-          phi[iread + i7] + phi[iread + i8]);
+          float pc = 0.25 * (phi[iread + i1] + phi[iread + i2] +
+            phi[iread + i3] + phi[iread + i4]);
+          float ps = 0.25 * (phi[iread + i5] + phi[iread + i6] +
+            phi[iread + i7] + phi[iread + i8]);
 
-        phi[iwrite + ibase] = 0.8 * pc + 0.2 * ps;
+          phi[iwrite + ibase] = 0.8 * pc + 0.2 * ps;
 
-        error =
-          std::max(error, std::abs(phi[iwrite + ibase] - phi[iread + ibase]));
+          error =
+            std::max(error, std::abs(phi[iwrite + ibase] - phi[iread + ibase]));
+        }
       }
+#ifdef OACC
     }
+#endif
 
     if (iter % batches == 0)
     {

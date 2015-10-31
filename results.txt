@@ -2,8 +2,9 @@
 
 g++ -Wall -ansi -pedantic -fPIC -std=c++11 relax.cc -o relax
 
-g++ -Wall -ansi -pedantic -fPIC -std=c++11 relax.cc -o relax -fopenmp -lpthread
+g++ -Wall -ansi -pedantic -fPIC -std=c++11 relax.cc -o relax -fopenmp -lpthread -D OPENMP
 
+pgcc -acc -Minfo=accel -std=c++11 relax.cc -o relax -D OACC
 #
 # CPU single thread, n=200, epsilon = 1e-6, maxiter = 100k
 #

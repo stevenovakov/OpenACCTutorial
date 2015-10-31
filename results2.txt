@@ -127,3 +127,16 @@ Writing to "output.csv" ...
 
 Iteration Complete. Total Iterations: 20029, Time Elapsed: 31.077145 (s)
 Writing to "output.csv" ...
+
+
+#
+# OpenACC First attempt n=200
+#
+
+9900, 0.0000011921
+10000, 0.0000011921
+10100, 0.0000010729
+Iteration Complete. Total Iterations: 10171, Time Elapsed: 465.628510 (s)
+Writing to "output.csv" ...
+
+# suuuper bad. only using #pragma acc kernels, and parallel independnent Very likely something shitty going on with mem copies, etc and atomics, will check.
