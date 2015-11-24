@@ -48,7 +48,7 @@
   #include "openacc.h"
 #endif
 
-uint32_t n = 200;
+uint32_t n = 512;
 uint32_t batches = 100;
 
 void CLArgs(int argc, char * argv[]);
@@ -81,6 +81,9 @@ int main(int argc, char * argv[])
   }
 
   // initialize potentials
+#ifdef OMP
+  #pragma omp parallel for shared(n, xx, yy, phi)
+#endif
   for (uint32_t i = 0; i < n; i++)
   {
     for (uint32_t j = 0; j < n; j++)
@@ -119,9 +122,9 @@ int main(int argc, char * argv[])
 
   uint32_t iter = 0;
   uint32_t sel = 0;
-  uint32_t max_iter = 10;
+  uint32_t max_iter = 1000000;
   float error = 1000.0f;
-  float epsilon = 1.0e-6f;
+  float epsilon = 1.0e-5f;
 
 #ifdef OMP
   double start, end;
@@ -137,7 +140,7 @@ int main(int argc, char * argv[])
     sel = iter % 2;
 
 #ifdef OMP
-    #pragma omp parallel for shared(sel, n, xx, yy, phi) reduction(max : error)
+    #pragma omp parallel for shared(sel, n, xx, yy, phi) reduction(max:error)
 #elif OACC
     #pragma acc kernels
     {
@@ -146,7 +149,7 @@ int main(int argc, char * argv[])
       for (uint32_t i = 1; i < n-1; i++)
       {
 #ifdef OACC
-        #pragma acc loop independent //reduction(max:error)
+        #pragma acc loop independent reduction(max:error)
 #endif
         for (uint32_t j = 1; j < n-1; j++)
         {
@@ -186,9 +189,7 @@ int main(int argc, char * argv[])
 #endif
 
     if (iter % batches == 0)
-    {
       printf("%d, %3.10f\n", iter, error);
-    }
 
     iter++;
   }

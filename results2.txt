@@ -139,4 +139,90 @@ Writing to "output.csv" ...
 Iteration Complete. Total Iterations: 10171, Time Elapsed: 465.628510 (s)
 Writing to "output.csv" ...
 
-# suuuper bad. only using #pragma acc kernels, and parallel independnent Very likely something shitty going on with mem copies, etc and atomics, will check.
+# suuuper bad. only using #pragma acc kernels, and parallel independnent Very likely something wonky going on with mem copies, etc and atomics, will check.
+
+
+####
+#### 2015-11-24
+####
+
+
+First compile of p4a port:
+
+    108, Generating copy(A[:])
+         Generating copyout(Anew[:])
+         Generating copy(error,_T24867688)
+    111, Scalar last value needed after loop for error at line 134
+         Accelerator restriction: scalar variable live-out from loop: error,_T24867688
+         Accelerator scalar kernel generated
+    113, Complex loop carried dependence of A->,Anew-> prevents parallelization
+         Complex loop carried dependence of  prevents parallelization
+         Scalar last value needed after loop for error at line 134
+         Accelerator restriction: scalar variable live-out from loop: error,_T24867688
+    124, Loop is parallelizable
+    126, Complex loop carried dependence of Anew->,A-> prevents parallelization
+         Inner sequential loop scheduled on accelerator
+         Accelerator kernel generated
+         Generating Tesla code
+        124, #pragma acc loop gang, vector(128) /* blockIdx.x threadIdx.x */
+std::abs(float):
+     28, include "cmath"
+          21, include "cmath"
+               88, Generating implicit acc routine seq
+const T1 & std::max<float>(const T1 &, const T1 &):
+     27, include "iostream"
+          39, include "ostream"
+               38, include "ios"
+                    40, include "char_traits.h"
+                         39, include "stl_algobase.h"
+                             217, Generating implicit acc routine seq
+
+after switching to his exact code (part 2)
+
+113, Generating copy(A[:],Anew[:])
+    115, Generating copy(_T39691256,error)
+    123, Complex loop carried dependence of Anew-> prevents parallelization
+         Loop carried dependence of Anew-> prevents parallelization
+         Loop carried dependence of Anew-> prevents vectorization
+         Loop carried backward dependence of Anew-> prevents vectorization
+         Complex loop carried dependence of  prevents parallelization
+         Scalar last value needed after loop for error at line 149
+         Accelerator restriction: scalar variable live-out from loop: error,_T39691256
+         Accelerator scalar kernel generated
+    125, Complex loop carried dependence of Anew-> prevents parallelization
+         Complex loop carried dependence of  prevents parallelization
+         Scalar last value needed after loop for error at line 149
+         Accelerator restriction: scalar variable live-out from loop: error,_T39691256
+    140, Loop carried dependence of A-> prevents parallelization
+         Loop carried backward dependence of A-> prevents vectorization
+    142, Loop is parallelizable
+         Accelerator kernel generated
+         Generating Tesla code
+        142, #pragma acc loop gang, vector(128) /* blockIdx.x threadIdx.x */
+std::abs(float):
+     28, include "cmath"
+          21, include "cmath"
+               88, Generating implicit acc routine seq
+const T1 & std::max<float>(const T1 &, const T1 &):
+     27, include "iostream"
+          39, include "ostream"
+               38, include "ios"
+                    40, include "char_traits.h"
+                         39, include "stl_algobase.h"
+                             217, Generating implicit acc routine seq
+
+pile of garbage, fuck this for now. I'll post about my troubles and see if someone says something interesting. It shouldn't be this hard to get it to work, at this rate I may as well write the whole thing in CUDA. (besides the point)
+
+Let's do some nice benching on the OMP/single thread data and see what happens.
+
+used 1c96aecd493aad0a8d1b4b64ddf12bc430af63c2 as a basis for the p4a code.
+
+n Iterations  jackson_1 jackson_omp w/o reduce  Iterations  p4a p4a_omp w/ reduce
+128 3232  1.129339  0.593687  1.1516346 7600  1.88803 2.322734  0.645108
+256 9356  13.607039 4.331593  9.704246  14351 12.90465  14.003855 3.752618
+512 22954 139.265152  34.154006 80.828234 20098 71.627769 73.017763 16.038981
+1024  30500 1064.525757 266.677273  474.060816  23051 336.5859  284.048328  67.629881
+
+
+
+
