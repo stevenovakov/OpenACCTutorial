@@ -124,7 +124,7 @@ int main(int argc, char * argv[])
   uint32_t sel = 0;
   uint32_t max_iter = 1000000;
   float error = 1000.0f;
-  float epsilon = 1.0e-5f;
+  float epsilon = 1.0e-6f;
 
 #ifdef OMP
   double start, end;
@@ -134,6 +134,12 @@ int main(int argc, char * argv[])
   itertime = clock();
 #endif
 
+  //
+  // TODO
+  // pretty naive termination condition, not guaranteed to converge for all
+  // grid sizes with fixed error, look at using the L-infinity norm of the
+  // Laplacian as a termination condition
+  //
   while (error > epsilon && iter < max_iter)
   {
     error = 0.0f;
@@ -144,12 +150,12 @@ int main(int argc, char * argv[])
 #elif OACC
     #pragma acc kernels
     {
-      #pragma acc loop independent
+      #pragma acc loop independent reduction(max:error)
 #endif
       for (uint32_t i = 1; i < n-1; i++)
       {
 #ifdef OACC
-        #pragma acc loop independent reduction(max:error)
+        #pragma acc loop independent
 #endif
         for (uint32_t j = 1; j < n-1; j++)
         {
@@ -157,6 +163,7 @@ int main(int argc, char * argv[])
 
           float x = xx[ibase];
           float y = yy[ibase];
+          float diff;
 
           if ( x*x + y*y > 1.0)
             continue;
@@ -180,8 +187,10 @@ int main(int argc, char * argv[])
 
           phi[iwrite + ibase] = 0.8 * pc + 0.2 * ps;
 
-          error =
-            std::max(error, std::abs(phi[iwrite + ibase] - phi[iread + ibase]));
+          diff = std::abs(phi[iwrite + ibase] - phi[iread + ibase]);
+
+          if (error < diff)
+            error = diff;
         }
       }
 #ifdef OACC
@@ -215,11 +224,11 @@ int main(int argc, char * argv[])
   yfile = fopen("yy.csv", "w");
 
 #ifdef OMP
-  pfile = fopen("phi.csv", "w");
+  pfile = fopen("phi_omp.csv", "w");
 #elif OACC
   pfile = fopen("phi_oacc.csv", "w");
 #else
-  pfile = fopen("phi_omp.csv", "w");
+  pfile = fopen("phi.csv", "w");
 #endif
 
   uint32_t readfrom = (1-sel) * n * n;

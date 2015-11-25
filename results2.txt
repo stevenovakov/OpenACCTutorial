@@ -225,4 +225,36 @@ n Iterations  jackson_1 jackson_omp w/o reduce  Iterations  p4a p4a_omp w/ reduc
 
 
 
+#
+# 2015-11-24
+#
 
+Implemented p4a Up to here...http://devblogs.nvidia.com/parallelforall/openacc-example-part-2/
+
+still doesn't compile correctly, even after implementing error change:
+
+    118, Generating copy(A[:])
+         Generating create(Anew[:])
+    127, Parallelization would require privatization of array Anew[:]
+         Accelerator kernel generated
+         Generating Tesla code
+    148, Loop carried dependence of A-> prevents parallelization
+         Loop carried backward dependence of A-> prevents vectorization
+    150, Loop is parallelizable
+         Accelerator kernel generated
+         Generating Tesla code
+        150, #pragma acc loop gang, vector(128) /* blockIdx.x threadIdx.x */
+std::abs(float):
+     28, include "cmath"
+          21, include "cmath"
+               88, Generating implicit acc routine seq
+
+
+1e-6 converges for 1024
+
+131500, 0.0000010729
+131600, 0.0000010729
+Iteration Complete. Total Iterations: 131679, Time Elapsed: 166.224335 (s)
+Writing to "output csvs" ...
+
+great!!!!!
