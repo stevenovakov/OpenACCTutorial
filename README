@@ -1,0 +1,87 @@
+# README
+#     for OpenACCTutorial
+#     Copyright (C) 2015 Steve Novakov
+#
+#     This program is free software; you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation; either version 2 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License along
+#     with this program; if not, write to the Free Software Foundation, Inc.,
+#     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+# NOTE: MAKE SURE ALL INDENTS IN MAKEFILE ARE **TABS** AND NOT SPACES
+#
+
+#
+# COMPILATION
+#
+
+Before attempting compilation, please make sure that:
+  - a working OpenMP/OpenACC environment is installed. For GPGPU, installing the relevant hardware drivers and either the NVIDIA CUDA SDK or the AMD APP SDK will satisfy this requirement. OpenMP is supported by both gcc/g++. OpenACC for C is supported by gcc, but C++ support requires PGI compilers.
+
+You can compile non debug builds with just
+$ make
+and debug builds with
+$ make debug
+run in the root repository directory.
+
+Once compiled you can check that the correct linkage has occured by running
+
+$ ldd relax_oacc
+linux-vdso.so.1 =>  (0x00007ffe749db000)
+libaccapi.so => /opt/pgi/linux86-64/15.7/lib/libaccapi.so (0x00007fc0e9738000)
+libaccg.so => /opt/pgi/linux86-64/15.7/lib/libaccg.so (0x00007fc0e961d000)
+libaccn.so => /opt/pgi/linux86-64/15.7/lib/libaccn.so (0x00007fc0e94ff000)
+libaccg2.so => /opt/pgi/linux86-64/15.7/lib/libaccg2.so (0x00007fc0e93f3000)
+libpgiman.so => /opt/pgi/linux86-64/15.7/lib/libpgiman.so (0x00007fc0e92ef000)
+libdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007fc0e90c7000)
+libcudadevice.so => /opt/pgi/linux86-64/15.7/lib/libcudadevice.so (0x00007fc0e8fb9000)
+libpgatm.so => /opt/pgi/linux86-64/15.7/lib/libpgatm.so (0x00007fc0e8eb3000)
+libgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007fc0e8c9d000)
+libstdc++.so.6 => /usr/lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007fc0e8999000)
+libpgmp.so => /opt/pgi/linux86-64/15.7/lib/libpgmp.so (0x00007fc0e8819000)
+libnuma.so => /opt/pgi/linux86-64/15.7/lib/libnuma.so (0x00007fc0e8718000)
+libpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007fc0e84fa000)
+libpgc.so => /opt/pgi/linux86-64/15.7/lib/libpgc.so (0x00007fc0e8383000)
+libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007fc0e807d000)
+libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fc0e7cb8000)
+/lib64/ld-linux-x86-64.so.2 (0x00007fc0e9855000)
+
+for example.
+
+#
+# Execution
+#
+
+You can run all of the compiled executables with the default settings (n = 512, for an nxn grid) by simply executing them with no arguments, for example
+
+$ ./relax_omp
+
+You can specify the (square) grid length n, as follows for the C++ programs (anything but p4ac)
+
+$ ./program -n=4096
+
+and, for p4ac (which does not function correctly):
+
+$ ./p4ac 4096
+
+A second argument can be passed to specify the "batch" number, which is the number of iterations before the error and iteration count is reported (default 100)
+
+$ ./program -b=1000
+
+for p4ac, this must be specified after the grid size (can not leave grid size blank) because I was too lazy to write a competent argument parser.
+
+$ ./p4ac 512 1000
+
+#
+# NVVP use
+#
+
+NVVP can be used to profile the OpenACC accelerated executables. Just start nvvp and link it to the executable the usual way. I recommend -n=128 for a fast dump.
