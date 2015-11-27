@@ -19,8 +19,8 @@
 GPP = g++
 PGI = pgc++
 
-GPPFLAGS = -Wall -ansi -pedantic -fPIC -std=c++11
-DGPPFLAGS = -g -Wall -ansi -pedantic -fPIC -std=c++11
+GPPFLAGS = -Wall -ansi -pedantic -fPIC -std=c++11 -Ofast
+DGPPFLAGS = -g -Wall -ansi -pedantic -fPIC -std=c++11 -Ofast
 PGCPPFLAGS = -acc -ta=nvidia:managed,time -Minfo=accel -fast -std=c++11 -D OACC
 DPGCPPFLAGS = -g -acc -ta=nvidia:managed,time -Minfo=accel -fast -std=c++11 -D OACC
 
