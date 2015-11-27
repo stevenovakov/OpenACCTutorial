@@ -54,7 +54,7 @@ p4a_omp: p4allrework.cc
 	$(GPP) $(GPPFLAGS) -o $@ $< $(OMPFLAGS)
 
 # p4a_oacc: p4allrework.cc
-# 	$(PGI) $(PGIFLAGS) -o $@ $<
+# 	$(PGI) $(PGCPPFLAGS) -o $@ $<
 
 p4ac: p4a.c
 	pgcc $(PGCCFLAGS) -o $@ $<

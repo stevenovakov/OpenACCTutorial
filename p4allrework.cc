@@ -25,6 +25,7 @@
 //
 
 #include <iostream>
+#include <cstdint>
 #include <cmath>
 #include <string>
 #include <vector>
