@@ -53,7 +53,7 @@ int main(int argc, char** argv)
   uint32_t iter_max = 1000000;
 
   const float pi  = 2.0f * std::asin(1.0f);
-  const float tol = 1.0e-6f;
+  const float tol = 1.0e-5f;
   float error     = 1.0f;
   float expfpi = expf(-1*pi);
 
@@ -207,7 +207,7 @@ int main(int argc, char** argv)
     {
       ind = i + n * j;
 
-      fprintf(pfile, "%f", Anew[ind]);
+      fprintf(pfile, "%f", A[ind]);
 
       if(j < n-1)
         fprintf(pfile, ",");

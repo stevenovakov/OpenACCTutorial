@@ -21,17 +21,21 @@ PGI = pgc++
 
 GPPFLAGS = -Wall -ansi -pedantic -fPIC -std=c++11
 DGPPFLAGS = -g -Wall -ansi -pedantic -fPIC -std=c++11
-PGIFLAGS = -acc -ta=nvidia:managed,time -Minfo=accel -fast -std=c++11 -D OACC
-DPGIFLAGS = -g -acc -ta=nvidia:managed,time -Minfo=accel -fast -std=c++11 -D OACC
+PGCPPFLAGS = -acc -ta=nvidia:managed,time -Minfo=accel -fast -std=c++11 -D OACC
+DPGCPPFLAGS = -g -acc -ta=nvidia:managed,time -Minfo=accel -fast -std=c++11 -D OACC
+
+PGCCFLAGS = -fPIC -acc -ta=nvidia:managed,time -Minfo=accel -fast
+DPGCCFLAGS = -g -fPIC -acc -ta=nvidia:managed,time -Minfo=accel -fast
 
 OMPFLAGS = -fopenmp -lpthread -D OMP
 
-TARGETS = relax relax_omp relax_oacc p4a p4a_omp p4a_oacc
+TARGETS = relax relax_omp relax_oacc p4a p4a_omp p4ac
 
 all: $(TARGETS)
 
 debug: GPPFLAGS=$(DGPPFLAGS)
-debug: DPGIFLAGS=$(PGIFLAGS)
+debug: PGCPPFLAGS=$(DPGCPPFLAGS)
+debug: PGCCFLAGS=$(DPGCCFLAGS)
 debug: $(TARGETS)
 
 relax: relax.cc
@@ -41,7 +45,7 @@ relax_omp: relax.cc
 	$(GPP) $(GPPFLAGS) -o $@ $< $(OMPFLAGS)
 
 relax_oacc: relax.cc
-	$(PGI) $(PGIFLAGS) -o $@ $<
+	$(PGI) $(PGCPPFLAGS) -o $@ $<
 
 p4a: p4allrework.cc
 	$(GPP) $(GPPFLAGS) -o $@ $<
@@ -49,8 +53,11 @@ p4a: p4allrework.cc
 p4a_omp: p4allrework.cc
 	$(GPP) $(GPPFLAGS) -o $@ $< $(OMPFLAGS)
 
-p4a_oacc: p4allrework.cc
-	$(PGI) $(PGIFLAGS) -o $@ $<
+# p4a_oacc: p4allrework.cc
+# 	$(PGI) $(PGIFLAGS) -o $@ $<
+
+p4ac: p4a.c
+	pgcc $(PGCCFLAGS) -o $@ $<
 
 clean:
 	$(RM) $(TARGETS)

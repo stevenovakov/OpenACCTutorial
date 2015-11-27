@@ -26,7 +26,7 @@ raw_input()
 fig.clf()
 pt.close(fig)
 
-aa = np.loadtxt(open("a_omp.csv", "rb"), delimiter=",")
+aa = np.loadtxt(open("a_oacc.csv", "rb"), delimiter=",")
 pt.imshow(aa, origin='lower', cmap=pt.cm.RdGy_r)
 pt.title("P4All Jacobi Iteration Result", fontsize=20)
 pt.xlabel("x", fontsize=17)
