@@ -258,3 +258,37 @@ Iteration Complete. Total Iterations: 131679, Time Elapsed: 166.224335 (s)
 Writing to "output csvs" ...
 
 great!!!!!
+
+step 3 optimizations:
+
+g++ -Wall -ansi -pedantic -fPIC -std=c++11 -o p4a p4allrework.cc
+g++ -Wall -ansi -pedantic -fPIC -std=c++11 -o p4a_omp p4allrework.cc -fopenmp -lpthread -D OMP
+pgc++ -acc -ta=nvidia:managed,time -Minfo=accel -fast -std=c++11 -D OACC -o p4a_oacc p4allrework.cc
+PGCC-S-0053-Illegal use of void type (p4allrework.cc: 173)
+PGCC-S-0053-Illegal use of void type (p4allrework.cc: 114)
+PGCC-S-0053-Illegal use of void type (p4allrework.cc: 114)
+PGCC-S-0053-Illegal use of void type (p4allrework.cc: 114)
+PGCC-S-0053-Illegal use of void type (p4allrework.cc: 114)
+PGCC-S-0053-Illegal use of void type (p4allrework.cc: 114)
+PGCC-S-0053-Illegal use of void type (p4allrework.cc: 114)
+PGCC-S-0053-Illegal use of void type (p4allrework.cc: 114)
+main:
+    119, Generating copy(A[:])
+         Generating create(Anew[:])
+    130, Complex loop carried dependence of A->,Anew-> prevents parallelization
+         Parallelization would require privatization of array Anew[:]
+         Sequential loop scheduled on host
+    135, Complex loop carried dependence of A->,Anew-> prevents parallelization
+         Inner sequential loop scheduled on host
+         Accelerator scalar kernel generated
+    154, Generating copy([:])
+    157, Complex loop carried dependence of Anew->,A-> prevents parallelization
+         Parallelization would require privatization of array A[:]
+         Sequential loop scheduled on host
+    162, Complex loop carried dependence of Anew->,A-> prevents parallelization
+         Inner sequential loop scheduled on host
+         Accelerator scalar kernel generated
+PGCC/x86 Linux 15.7-0: compilation completed with severe errors
+make: *** [p4a_oacc] Error 2
+
+from here: https://github.com/parallel-forall/code-samples/blob/master/posts/002-openacc-example/step3/laplace2d.c

@@ -21,8 +21,8 @@ PGI = pgc++
 
 GPPFLAGS = -Wall -ansi -pedantic -fPIC -std=c++11
 DGPPFLAGS = -g -Wall -ansi -pedantic -fPIC -std=c++11
-PGIFLAGS = -acc -ta=nvidia:managed,time -Minfo=accel -fast -V15.7 -std=c++11 -D OACC
-DPGIFLAGS = -g -acc -ta=nvidia:managed,time -Minfo=accel -fast -V15.7 -std=c++11 -D OACC
+PGIFLAGS = -acc -ta=nvidia:managed,time -Minfo=accel -fast -std=c++11 -D OACC
+DPGIFLAGS = -g -acc -ta=nvidia:managed,time -Minfo=accel -fast -std=c++11 -D OACC
 
 OMPFLAGS = -fopenmp -lpthread -D OMP
 

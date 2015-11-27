@@ -18,19 +18,6 @@
 #     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-// Influenced by
-//
-// http://devblogs.nvidia.com/parallelforall/openacc-example-part-1/
-
-
-//
-// TODO
-//    install CUDA 7.5
-//    install OpenACC toolkit
-//    create makefile with cpp, openmp, openacc options
-//    create installation instructions for openacc
-//
-
 #include <iostream>
 #include <cstdint>
 #include <string>
@@ -115,7 +102,7 @@ int main(int argc, char * argv[])
     }
   }
 
-  std::puts("Initialization Complete. Starting iteration...\n");
+  printf("Initialization Complete. Starting iteration... (%d x %d)\n", n, n);
   //
   // Iteration Start
   //
@@ -124,7 +111,7 @@ int main(int argc, char * argv[])
   uint32_t sel = 0;
   uint32_t max_iter = 1000000;
   float error = 1000.0f;
-  float epsilon = 1.0e-6f;
+  float epsilon = 1.0e-5f;
 
 #ifdef OMP
   double start, end;
@@ -137,8 +124,8 @@ int main(int argc, char * argv[])
   //
   // TODO
   // pretty naive termination condition, not guaranteed to converge for all
-  // grid sizes with fixed error, look at using the L-infinity norm of the
-  // Laplacian as a termination condition
+  // grid sizes with fixed error, IIRC there was something more rigorous
+  // and dependent on the grid spacing "h"
   //
   while (error > epsilon && iter < max_iter)
   {
